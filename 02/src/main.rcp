@@ -12,11 +12,11 @@ string_to_number :: fn(str: []u32) -> int {
 	res := 0;
 
 	for digit in str {
-        res += @int (digit - '0');
-        res *= 10;
-    }
+		res += @int (digit - '0');
+		res *= 10;
+	}
 
-    return res / 10;
+	return res / 10;
 }
 
 signs_match :: fn(x0: int, x1: int) -> bool {
@@ -35,7 +35,7 @@ main :: fn() -> i32 {
 	safe_count := 0;
 
 	for c in input {
-        if c == ' ' || c == '\n' {
+		if c == ' ' || c == '\n' {
 			num := string_to_number(num_builder);
 
 			arr.add(&report, @int num);
@@ -67,9 +67,9 @@ main :: fn() -> i32 {
 		}
 	}
 
-    io.println("Safe Count: %", safe_count);
+	io.println("Safe Count: %", safe_count);
 
 
-    return 0;
+	return 0;
 }
 
