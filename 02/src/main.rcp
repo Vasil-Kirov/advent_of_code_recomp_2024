@@ -1,0 +1,75 @@
+main
+
+#import io
+#import mem
+#import math
+#import os
+#import array as arr
+
+input := #embed_str "../input.txt";
+
+string_to_number :: fn(str: []u32) -> int {
+	res := 0;
+
+	for digit in str {
+        res += @int (digit - '0');
+        res *= 10;
+    }
+
+    return res / 10;
+}
+
+signs_match :: fn(x0: int, x1: int) -> bool {
+	if x0 < 0 return x1 < 0;
+	return x1 >= 0;
+}
+
+is_safe :: fn(diff: int) -> bool {
+	return math.abs(diff) >= 1 && math.abs(diff) <= 3;
+}
+
+main :: fn() -> i32 {
+	alloc := mem.create_generic_allocator();
+	num_builder := arr.create(u32, &alloc);
+	report := arr.create(int, &alloc);
+	safe_count := 0;
+
+	for c in input {
+        if c == ' ' || c == '\n' {
+			num := string_to_number(num_builder);
+
+			arr.add(&report, @int num);
+			arr.clear(&num_builder);
+			if c == '\n' {
+				os.assert(report.count > 1, "Report must have at least 2 levels");
+
+				first_diff := report[1] - report[0];
+				safe := true;
+				if is_safe(first_diff) {
+					first := report[0];
+					for i := 1; i < report.count; i += 1 {
+						diff := report[i] - first;
+						if !is_safe(diff) || !signs_match(diff, first_diff) {
+							safe = false;
+							break;
+						}
+
+						first = report[i];
+					}
+				} else {
+					safe = false;
+				}
+				arr.clear(&report);
+				if safe safe_count += 1;
+			}
+		} else {
+			arr.add(&num_builder, c);
+		}
+	}
+
+    io.println("Safe Count: %", safe_count);
+
+
+    return 0;
+}
+

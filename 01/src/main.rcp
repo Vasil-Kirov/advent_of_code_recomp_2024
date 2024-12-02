@@ -1,0 +1,85 @@
+main
+
+#import io
+#import mem
+#import os
+#import array as arr
+
+input := #embed_str "../input.txt";
+
+string_to_number :: fn(str: []u32) -> uint {
+	res := @uint 0;
+
+	for digit in str {
+        res += digit - '0';
+        res *= 10;
+    }
+
+    return res / 10;
+}
+
+abs :: fn (x: $T) -> T {
+    if x < 0
+        return -x;
+    return x;
+}
+
+sort_slice :: fn(s: []int) {
+    s := s;
+    for i in s.count {
+        for j := i + 1; j < s.count; j += 1 {
+            if s[i] > s[j] {
+                tmp := s[i];
+                s[i] = s[j];
+                s[j] = tmp;
+            }
+        }
+    }
+}
+
+main :: fn() -> i32 {
+	alloc := mem.create_generic_allocator();
+	num_builder := arr.create(u32, &alloc);
+	left  := arr.create(int, &alloc);
+	right := arr.create(int, &alloc);
+
+    is_left := true;
+    found_start := true;
+
+	for c in input {
+        if c == ' ' || c == '\n' {
+            if found_start {
+                num := string_to_number(num_builder);
+
+                if is_left {
+                    arr.add(&left, @int num);
+                } else {
+                    arr.add(&right, @int num);
+                }
+
+                is_left = !is_left;
+                found_start = false;
+
+                arr.clear(&num_builder);
+            }
+		} else {
+            found_start = true;
+			arr.add(&num_builder, c);
+		}
+	}
+
+    os.assert(left.count == right.count, "Both sides need to be equal");
+    sort_slice(left);
+    sort_slice(right);
+
+    distance := 0;
+    for i in left.count {
+        distance += abs(left[i] - right[i]);
+    }
+
+    io.println("Distance: %", distance);
+
+
+    return 0;
+}
+
