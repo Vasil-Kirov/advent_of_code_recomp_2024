@@ -10,6 +10,7 @@ input := #embed_str "../input.txt";
 string_to_number :: fn(str: []u32) -> uint {
 	res := @uint 0;
 
+
 	for digit in str {
 		res += digit - '0';
 		res *= 10;
@@ -77,7 +78,21 @@ main :: fn() -> i32 {
 		distance += abs(left[i] - right[i]);
 	}
 
+	score := 0;
+	right_i := 0;
+	for num in left {
+
+		for right_i < right.count && right[right_i] <= num {
+			right_num := right[right_i];
+			if right_num == num {
+				score += num;
+			}
+			right_i += 1;
+		}
+	}
+
 	io.println("Distance: %", distance);
+	io.println("Score: %", score);
 
 
 	return 0;
