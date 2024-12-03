@@ -24,12 +24,44 @@ signs_match :: fn(x0: int, x1: int) -> bool {
 	return x1 >= 0;
 }
 
-is_safe :: fn(diff: int) -> bool {
+is_diff_in_range :: fn(diff: int) -> bool {
 	return math.abs(diff) >= 1 && math.abs(diff) <= 3;
 }
 
+is_safe :: fn(report: []int, ignore: int) -> bool {
+	os.assert(report.count > 1, "Report must have at least 2 levels");
+	safe := true;
+	going_down := false;
+	going_up := false;
+	found_error := false;
+
+	print := ignore == 1;
+	for i := 0; i < report.count-1; i += 1 {
+		if ignore != i {
+			next := i + 1;
+			if ignore == next {
+				next = i + 2;
+			}
+			if next != report.count {
+				diff := report[next] - report[i];
+				if math.abs(diff) != diff going_down = true;
+				else going_up = true;
+				
+				if !is_diff_in_range(diff) || (going_up && going_down) {
+				    safe = false;
+				    break;
+				}
+			}
+		}
+	}
+	return safe;
+}
+
+
 main :: fn() -> i32 {
-	alloc := mem.create_generic_allocator();
+	alloc := mem.create_scratch(1024 * 1024 * 1024);
+	defer mem.destroy_scratch(&alloc);
+
 	num_builder := arr.create(u32, &alloc);
 	report := arr.create(int, &alloc);
 	safe_count := 0;
@@ -41,26 +73,16 @@ main :: fn() -> i32 {
 			arr.add(&report, @int num);
 			arr.clear(&num_builder);
 			if c == '\n' {
-				os.assert(report.count > 1, "Report must have at least 2 levels");
-
-				first_diff := report[1] - report[0];
-				safe := true;
-				if is_safe(first_diff) {
-					first := report[0];
-					for i := 1; i < report.count; i += 1 {
-						diff := report[i] - first;
-						if !is_safe(diff) || !signs_match(diff, first_diff) {
-							safe = false;
+				if is_safe(report, -1) safe_count += 1;
+				else {
+					for i in report.count {
+						if is_safe(report, i) {
+							safe_count += 1;
 							break;
 						}
-
-						first = report[i];
 					}
-				} else {
-					safe = false;
 				}
 				arr.clear(&report);
-				if safe safe_count += 1;
 			}
 		} else {
 			arr.add(&num_builder, c);
