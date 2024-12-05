@@ -1,0 +1,167 @@
+main
+
+#import io
+#import mem
+#import math
+#import os
+#import array as arr
+
+input := #embed_str "../input.txt";
+
+struct Rule {
+	value: int,
+	next: ?*Rule,
+}
+
+string_to_number :: fn(str: []u32) -> int {
+	res := 0;
+
+	for digit in str {
+		res += @int (digit - '0');
+		res *= 10;
+	}
+
+	return res / 10;
+}
+
+add_rule :: fn(allocator: *mem.Allocator, rules: []?*Rule, pos: int, value: int) {
+	rules := rules;
+	new_rule_opt := mem.make_type(allocator, Rule);
+	os.assert(new_rule_opt != null, "Memory allocation failed");
+
+	new_rule := ?new_rule_opt;
+	new_rule.value = value;
+	new_rule.next = null;
+	if rules[pos] == null {
+		rules[pos] = new_rule;
+	} else {
+		curr := ?rules[pos];
+		for curr.next != null {
+			curr = ?curr.next;
+		}
+
+		curr.next = new_rule;
+	}
+
+}
+
+swap :: fn(arr: []$T, i: int, j: int) {
+	arr := arr;
+	tmp := arr[i];
+	arr[i] = arr[j];
+	arr[j] = tmp;
+}
+
+is_update_correct :: fn(rules: []?*Rule, update: []int, wrong_rule_i: *int, wrong_rule_j: *int) -> bool {
+	for i := 1; i < update.count; i += 1 {
+		num := update[i];
+		opt_rule := rules[num];
+		for opt_rule != null {
+			rule := ?opt_rule;
+			val := rule.value;
+			for j := 0; j < i; j += 1 {
+				if update[j] == val {
+					wrong_rule_i := wrong_rule_i;
+					wrong_rule_j := wrong_rule_j;
+					*wrong_rule_i = i;
+					*wrong_rule_j = j;
+					return false;
+				}
+			}
+
+			opt_rule = rule.next;
+		}
+
+	}
+	return true;
+}
+
+MAX_RULE :: 100;
+MAX_UPDATES :: 50;
+
+main :: fn() -> i32 {
+	alloc := mem.create_scratch(1024 * 1024 * 1024);
+	defer mem.destroy_scratch(&alloc);
+
+	num_builder := arr.create(u32, &alloc);
+	updates := arr.create([]int, &alloc);
+	rules := mem.make_slice(&alloc, ?*Rule, MAX_RULE);
+	current_update := mem.make_slice(&alloc, int, MAX_UPDATES);
+	current_update.count = 0;
+
+	rule_pos := 0;
+
+	just_got_newline := false;
+	second_stage := false;
+	for c in input {
+		if !second_stage {
+			if c == '|' {
+				num := string_to_number(num_builder);
+				arr.clear(&num_builder);
+
+				os.assert(num < MAX_RULE, "Number too big");
+				rule_pos = num;
+
+				just_got_newline = false;
+			} else if c == '\n' {
+				if just_got_newline second_stage = true;
+				else {
+					just_got_newline = true;
+					num := string_to_number(num_builder);
+					add_rule(&alloc, rules, rule_pos, num);
+				}
+				arr.clear(&num_builder);
+			} else if c != '\r' {
+				arr.add(&num_builder, c);
+
+				just_got_newline = false;
+			}
+		} else {
+			if c == ',' {
+				num := string_to_number(num_builder);
+				arr.clear(&num_builder);
+
+				current_update[current_update.count] = num;
+				current_update.count += 1;
+				os.assert(current_update.count < MAX_UPDATES-1, "Too many numbers in update");
+			} else if c == '\n' {
+				num := string_to_number(num_builder);
+				arr.clear(&num_builder);
+
+				current_update[current_update.count] = num;
+				current_update.count += 1;
+				arr.add(&updates, current_update);
+				
+				current_update = mem.make_slice(&alloc, int, MAX_UPDATES);
+				current_update.count = 0;
+			} else if c != '\r' {
+				arr.add(&num_builder, c);
+			}
+		}
+	}
+
+	result := 0;
+	for update in updates {
+		os.assert(update.count % 2 != 0, "Count of numbers in update needs to be odd");
+
+		wrong_rule_i: int = 0;
+		wrong_rule_j: int = 0;
+		correct := is_update_correct(rules, update, &wrong_rule_i, &wrong_rule_j);
+
+		if !correct {
+			swap(update, wrong_rule_i, wrong_rule_j);
+
+			for !is_update_correct(rules, update, &wrong_rule_i, &wrong_rule_j) {
+				swap(update, wrong_rule_i, wrong_rule_j);
+			}
+
+			result += update[(update.count / 2)];
+		}
+
+	}
+
+	io.println("Result: %", result);
+
+	return 0;
+}
+
