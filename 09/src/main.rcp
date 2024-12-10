@@ -1,0 +1,82 @@
+main
+
+#import io
+#import mem
+#import os
+#import array as arr
+
+input := #embed_bin "../input.txt";
+
+struct File {
+    id: u16,
+    size: u32,
+    free_after: u32,
+    next: ?*File,
+    prev: ?*File,
+}
+
+main :: fn() -> i32 {
+	alloc := mem.create_scratch(1024 * 1024 * 1024);
+	defer mem.destroy_scratch(&alloc);
+
+    root := ?mem.make_type(File, &alloc);
+    tail := root;
+
+    is_free := false;
+    id: u16 = 0;
+    for i := 0; input[i] != 0; i += 1 {
+        c := input[i];
+        num := c - '0';
+        if !is_free {
+            new_file := ?mem.make_type(File, &alloc);
+            new_file.id = id;
+            new_file.size = num;
+            new_file.free_after = 0;
+            new_file.prev = tail;
+            tail.next = new_file;
+            tail = new_file;
+            id += 1;
+        } else {
+            tail.free_after = num;
+        }
+        is_free = !is_free;
+    }
+
+    at := tail;
+    for at != root {
+        to_go := at.prev;
+        for search := root; search != at; search = ?search.next {
+            if search.free_after >= at.size {
+                prev := ?at.prev;
+                prev.free_after += at.size + at.free_after;
+                prev.next = at.next;
+                at.free_after = search.free_after - at.size;
+                search.free_after = 0;
+                next := ?search.next;
+                search.next = at;
+                at.next = next;
+                at.prev = search;
+                next.prev = at;
+            }
+        }
+        at = ?to_go;
+    }
+
+    i := 0;
+    curr: ?*File = root;
+    res := 0;
+    for curr != null {
+        at = ?curr;
+        for n in at.size {
+            res += @int at.id * i;
+            i += 1;
+        }
+        for n in at.free_after i += 1;
+        curr = at.next;
+    }
+
+    io.println("Result: %", res);
+
+	return 0;
+}
+
