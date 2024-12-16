@@ -1,0 +1,13 @@
+build
+
+#import compile as c
+
+
+compile :: fn() -> c.CompileInfo {
+	return c.CompileInfo {
+		files = []string {"../src/main.rcp"},
+        flags = @u32 c.CompileFlag.SanAddress
+	};
+}
+
+

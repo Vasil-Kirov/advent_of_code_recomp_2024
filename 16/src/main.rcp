@@ -1,0 +1,98 @@
+main
+
+#import io
+#import mem
+#import os
+#import array as arr
+
+input := #embed_bin "../test.txt";
+
+enum Tile {
+    Wall,
+    Empty,
+    Start,
+    End,
+}
+
+get_map :: fn(alloc: *mem.Allocator, o_w: *int, o_h: *int) -> [][]Tile {
+    o_w := o_w;
+    o_h := o_h;
+    width := 0;
+    for i := 0; input[i] != 0; i += 1 {
+        if input[i] == '\r' || input[i] == '\n'
+            break;
+        width += 1;
+    }
+    height := 0;
+    not_empty := false;
+    for i := 0; input[i] != 0; i += 1 {
+        if input[i] == '\r' || input[i] == '\n' {
+            if not_empty
+                height += 1;
+            not_empty = false;
+        }
+        else {
+            not_empty = true;
+        }
+    }
+
+    map := mem.make_slice([]Tile, height, alloc);
+    for i in height {
+        map[i] = mem.make_slice(Tile, width, alloc);
+    }
+
+    *o_w = width;
+    *o_h = height;
+
+    y := 0; 
+    x := 0;
+    not_empty = false;
+    for i := 0; input[i] != 0; i += 1 {
+        c := input[i];
+        if c == '\r' || c == '\n' {
+            if not_empty {
+                y += 1;
+                x = 0;
+            }
+            not_empty = false;
+        }
+        else {
+            not_empty = true;
+            map[y][x] = match c {
+                @u8 '#': return Tile.Wall;
+                @u8 '.': return Tile.Empty;
+                @u8 'S': return Tile.Start;
+                @u8 'E': return Tile.End;
+            };
+            x += 1;
+        }
+    }
+    
+    return map;
+}
+
+main :: fn() -> i32 {
+	alloc := mem.create_scratch(1024 * 1024 * 1024);
+	defer mem.destroy_scratch(&alloc);
+
+    width := 0;
+    height := 0;
+    map := get_map(&alloc, &width, &height);
+
+    for y := 0; y < height; y += 1 {
+        for x := 0; x < width; x += 1 {
+            io.print("%c", match map[y][x] {
+                Tile.Empty: return '.';
+                Tile.Wall: return '#';
+                Tile.Start: return '!';
+                Tile.End: return '0';
+            });
+        }
+        io.println("");
+    }
+
+
+
+	return 0;
+}
+
