@@ -1,0 +1,124 @@
+==21292==ERROR: AddressSanitizer: heap-use-after-free on address 0x1306bb523100 at pc 0x7ff70b4cde9c bp 0x00c77d4fd990 sp 0x00c77d4fd9d8
+READ of size 24 at 0x1306bb523100 thread T7
+    #0 0x7ff70b4cde9b in __asan_memcpy C:\src\llvm_package_18.1.4\llvm-project\compiler-rt\lib\asan\asan_interceptors_memintrinsics.cpp:63
+    #1 0x7ff70b493193 in dynamic<struct key>::operator[](unsigned __int64) const E:\C_Projects\ReComp\src\Dynamic.h:38
+    #2 0x7ff70b495851 in dict<unsigned int>::GetUnstablePtr(struct string) E:\C_Projects\ReComp\src\Dict.h:92
+    #3 0x7ff70b48aefc in dict<unsigned int>::operator[](struct string) E:\C_Projects\ReComp\src\Dict.h:102
+    #4 0x7ff70b3f54eb in GetPointerTo(unsigned int, unsigned int) E:\C_Projects\ReComp\src\Type.cpp:1029
+    #5 0x7ff70b45f121 in ConvertToLLVMType(struct generator *, unsigned int) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMType.cpp:131
+    #6 0x7ff70b473079 in LLVMDefineStructType(struct generator *, unsigned int) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMType.cpp:493
+    #7 0x7ff70b471627 in RCGenerateComplexTypes(struct generator *) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:858
+    #8 0x7ff70b474fc7 in RCGenerateFile(struct module *, unsigned int, struct slice<struct module *>, struct slice<struct file *>, struct compile_info *) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:964
+    #9 0x7ff70b478894 in GenWorkerFn(void *) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:1242
+    #10 0x7ff70b449731 in TryDoWork(struct work_queue *) E:\C_Projects\ReComp\src\Threading.cpp:13
+    #11 0x7ff70b449858 in ThreadProc(void *) E:\C_Projects\ReComp\src\Threading.cpp:31
+    #12 0x7ff70b4bfa39 in asan_thread_start C:\src\llvm_package_18.1.4\llvm-project\compiler-rt\lib\asan\asan_win.cpp:147
+    #13 0x7ffc8a187373  (C:\Windows\System32\KERNEL32.DLL+0x180017373)
+    #14 0x7ffc8b7fcc90  (C:\Windows\SYSTEM32\ntdll.dll+0x18004cc90)
+
+0x1306bb523100 is located 0 bytes inside of 5400-byte region [0x1306bb523100,0x1306bb524618)
+freed by thread T3 here:
+    #0 0x7ff70b4cc804 in realloc C:\src\llvm_package_18.1.4\llvm-project\compiler-rt\lib\asan\asan_malloc_win.cpp:135
+    #1 0x7ff70b491880 in ReallocateMemory(void *, int, int) E:\C_Projects\ReComp\src\vlib.h:146
+    #2 0x7ff70b4947b0 in dynamic<struct key>::EnsureCapacity(void) E:\C_Projects\ReComp\src\Dynamic.h:26
+    #3 0x7ff70b4943cd in dynamic<struct key>::Push(struct key) E:\C_Projects\ReComp\src\Dynamic.h:42
+    #4 0x7ff70b48b328 in dict<unsigned int>::Add(struct string, unsigned int) E:\C_Projects\ReComp\src\Dict.h:68
+    #5 0x7ff70b422140 in AddTypeWithName(struct type *, struct string) E:\C_Projects\ReComp\src\Type.cpp:243
+    #6 0x7ff70b3f6fad in AddType(struct type *) E:\C_Projects\ReComp\src\Type.cpp:252
+    #7 0x7ff70b3f5761 in GetPointerTo(unsigned int, unsigned int) E:\C_Projects\ReComp\src\Type.cpp:1048
+    #8 0x7ff70b4683ac in RCGenerateInstruction(struct generator *, struct instruction) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:436
+    #9 0x7ff70b46ff34 in RCGenerateFunction(struct generator *, struct function) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:821
+    #10 0x7ff70b476289 in RCGenerateFile(struct module *, unsigned int, struct slice<struct module *>, struct slice<struct file *>, struct compile_info *) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:1065
+    #11 0x7ff70b478894 in GenWorkerFn(void *) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:1242
+    #12 0x7ff70b449731 in TryDoWork(struct work_queue *) E:\C_Projects\ReComp\src\Threading.cpp:13
+    #13 0x7ff70b449858 in ThreadProc(void *) E:\C_Projects\ReComp\src\Threading.cpp:31
+    #14 0x7ff70b4bfa39 in asan_thread_start C:\src\llvm_package_18.1.4\llvm-project\compiler-rt\lib\asan\asan_win.cpp:147
+    #15 0x7ffc8a187373  (C:\Windows\System32\KERNEL32.DLL+0x180017373)
+    #16 0x7ffc8b7fcc90  (C:\Windows\SYSTEM32\ntdll.dll+0x18004cc90)
+
+previously allocated by thread T0 here:
+    #0 0x7ff70b4cc804 in realloc C:\src\llvm_package_18.1.4\llvm-project\compiler-rt\lib\asan\asan_malloc_win.cpp:135
+    #1 0x7ff70b491880 in ReallocateMemory(void *, int, int) E:\C_Projects\ReComp\src\vlib.h:146
+    #2 0x7ff70b4947b0 in dynamic<struct key>::EnsureCapacity(void) E:\C_Projects\ReComp\src\Dynamic.h:26
+    #3 0x7ff70b4943cd in dynamic<struct key>::Push(struct key) E:\C_Projects\ReComp\src\Dynamic.h:42
+    #4 0x7ff70b48b328 in dict<unsigned int>::Add(struct string, unsigned int) E:\C_Projects\ReComp\src\Dict.h:68
+    #5 0x7ff70b422140 in AddTypeWithName(struct type *, struct string) E:\C_Projects\ReComp\src\Type.cpp:243
+    #6 0x7ff70b3f6fad in AddType(struct type *) E:\C_Projects\ReComp\src\Type.cpp:252
+    #7 0x7ff70b41e6f1 in FunctionTypeGetNonGeneric(struct type const *, unsigned int, struct node *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:2717
+    #8 0x7ff70b40b0df in AnalyzeGenericExpression(struct checker *, struct node *, struct string *) E:\C_Projects\ReComp\src\Semantics.cpp:2878
+    #9 0x7ff70b401a22 in AnalyzeAtom(struct checker *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:840
+    #10 0x7ff70b41027f in AnalyzeUnary(struct checker *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:1479
+    #11 0x7ff70b3f9deb in AnalyzeExpression(struct checker *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:1735
+    #12 0x7ff70b3fdc34 in AnalyzeNode(struct checker *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:2418
+    #13 0x7ff70b413de2 in AnalyzeInnerBody(struct checker *, struct slice<struct node *>) E:\C_Projects\ReComp\src\Semantics.cpp:1881
+    #14 0x7ff70b4150a0 in AnalyzeFor(struct checker *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:1997
+    #15 0x7ff70b3fd09d in AnalyzeNode(struct checker *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:2345
+    #16 0x7ff70b413de2 in AnalyzeInnerBody(struct checker *, struct slice<struct node *>) E:\C_Projects\ReComp\src\Semantics.cpp:1881
+    #17 0x7ff70b4150a0 in AnalyzeFor(struct checker *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:1997
+    #18 0x7ff70b3fd09d in AnalyzeNode(struct checker *, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:2345
+    #19 0x7ff70b3fbb45 in AnalyzeFunctionBody(struct checker *, struct dynamic<struct node *> &, struct node *, unsigned int, struct node *) E:\C_Projects\ReComp\src\Semantics.cpp:557
+    #20 0x7ff70b41ed01 in Analyze(struct checker *, struct dynamic<struct node *> &) E:\C_Projects\ReComp\src\Semantics.cpp:2931
+    #21 0x7ff70b4802da in AnalyzeFile(struct file *) E:\C_Projects\ReComp\src\Main.cpp:181
+    #22 0x7ff70b4810ce in RunBuildPipeline(struct slice<struct string>, struct timers *, struct command_line, unsigned int, struct slice<struct module *> *) E:\C_Projects\ReComp\src\Main.cpp:231
+    #23 0x7ff70b482803 in CompileBuildFile(struct file *, struct string, struct timers *, unsigned int *, struct command_line, struct slice<struct module *> *, unsigned int) E:\C_Projects\ReComp\src\Main.cpp:385
+    #24 0x7ff70b4838da in main E:\C_Projects\ReComp\src\Main.cpp:460
+    #25 0x7ff70b4ebb8f in invoke_main D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl:78
+    #26 0x7ff70b4ebb8f in __scrt_common_main_seh D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl:288
+    #27 0x7ffc8a187373  (C:\Windows\System32\KERNEL32.DLL+0x180017373)
+    #28 0x7ffc8b7fcc90  (C:\Windows\SYSTEM32\ntdll.dll+0x18004cc90)
+
+Thread T7 created by T0 here:
+    #0 0x7ff70b4bf962 in CreateThread C:\src\llvm_package_18.1.4\llvm-project\compiler-rt\lib\asan\asan_win.cpp:158
+    #1 0x7ff70b449c57 in PlatformCreateThread(unsigned long (__cdecl *)(void *), void *) E:\C_Projects\ReComp\src\Win32.cpp:13
+    #2 0x7ff70b449bb7 in InitWorkQueue(struct work_queue *) E:\C_Projects\ReComp\src\Threading.cpp:68
+    #3 0x7ff70b478a9c in RCGenerateCode(struct slice<struct module *>, struct slice<struct file *>, unsigned int, struct compile_info *) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:1249
+    #4 0x7ff70b484892 in main E:\C_Projects\ReComp\src\Main.cpp:551
+    #5 0x7ff70b4ebb8f in invoke_main D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl:78
+    #6 0x7ff70b4ebb8f in __scrt_common_main_seh D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl:288
+    #7 0x7ffc8a187373  (C:\Windows\System32\KERNEL32.DLL+0x180017373)
+    #8 0x7ffc8b7fcc90  (C:\Windows\SYSTEM32\ntdll.dll+0x18004cc90)
+
+Thread T3 created by T0 here:
+    #0 0x7ff70b4bf962 in CreateThread C:\src\llvm_package_18.1.4\llvm-project\compiler-rt\lib\asan\asan_win.cpp:158
+    #1 0x7ff70b449c57 in PlatformCreateThread(unsigned long (__cdecl *)(void *), void *) E:\C_Projects\ReComp\src\Win32.cpp:13
+    #2 0x7ff70b449bb7 in InitWorkQueue(struct work_queue *) E:\C_Projects\ReComp\src\Threading.cpp:68
+    #3 0x7ff70b478a9c in RCGenerateCode(struct slice<struct module *>, struct slice<struct file *>, unsigned int, struct compile_info *) E:\C_Projects\ReComp\src\backend\LLVMC\LLVMBase.cpp:1249
+    #4 0x7ff70b484892 in main E:\C_Projects\ReComp\src\Main.cpp:551
+    #5 0x7ff70b4ebb8f in invoke_main D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl:78
+    #6 0x7ff70b4ebb8f in __scrt_common_main_seh D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl:288
+    #7 0x7ffc8a187373  (C:\Windows\System32\KERNEL32.DLL+0x180017373)
+    #8 0x7ffc8b7fcc90  (C:\Windows\SYSTEM32\ntdll.dll+0x18004cc90)
+
+SUMMARY: AddressSanitizer: heap-use-after-free C:\src\llvm_package_18.1.4\llvm-project\compiler-rt\lib\asan\asan_interceptors_memintrinsics.cpp:63 in __asan_memcpy
+Shadow bytes around the buggy address:
+  0x1306bb522e80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x1306bb522f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x1306bb522f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x1306bb523000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x1306bb523080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x1306bb523100:[fd]fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x1306bb523180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x1306bb523200: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x1306bb523280: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x1306bb523300: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x1306bb523380: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==21292==ABORTING

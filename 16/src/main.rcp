@@ -4,8 +4,7 @@ main
 #import mem
 #import os
 #import array as arr
-
-input := #embed_bin "../test.txt";
+#import math
 
 enum Tile {
     Wall,
@@ -14,7 +13,18 @@ enum Tile {
     End,
 }
 
-get_map :: fn(alloc: *mem.Allocator, o_w: *int, o_h: *int) -> [][]Tile {
+struct v2 {
+    x: int,
+    y: int,
+}
+
+input := #embed_bin "../input.txt";
+
+width := 0;
+height := 0;
+alloc: mem.Allocator;
+
+get_map :: fn(alloc: *mem.Allocator, o_w: *int, o_h: *int) -> ([][]Tile, v2, v2) {
     o_w := o_w;
     o_h := o_h;
     width := 0;
@@ -44,6 +54,9 @@ get_map :: fn(alloc: *mem.Allocator, o_w: *int, o_h: *int) -> [][]Tile {
     *o_w = width;
     *o_h = height;
 
+    start := v2 { 0, 0 };
+    end := v2 { 0, 0 };
+
     y := 0; 
     x := 0;
     not_empty = false;
@@ -57,6 +70,8 @@ get_map :: fn(alloc: *mem.Allocator, o_w: *int, o_h: *int) -> [][]Tile {
             not_empty = false;
         }
         else {
+            if c == 'S' start = v2 { x, y };
+            if c == 'E' end = v2 { x, y };
             not_empty = true;
             map[y][x] = match c {
                 @u8 '#': return Tile.Wall;
@@ -68,30 +83,161 @@ get_map :: fn(alloc: *mem.Allocator, o_w: *int, o_h: *int) -> [][]Tile {
         }
     }
     
-    return map;
+    return map, start, end;
 }
 
-main :: fn() -> i32 {
-	alloc := mem.create_scratch(1024 * 1024 * 1024);
-	defer mem.destroy_scratch(&alloc);
+v2_add :: fn(a: v2, b: v2) -> v2 {
+    return v2 { a.x + b.x, a.y - b.y };
+}
 
-    width := 0;
-    height := 0;
-    map := get_map(&alloc, &width, &height);
+rotate :: fn(dir: v2) -> v2 {
+    if dir.x == 0 && dir.y == 1 return v2 { 1, 0 };
+    if dir.x == 1 && dir.y == 0 return v2 { 0, -1 };
+    if dir.x == 0 && dir.y == -1 return v2 { -1, 0 };
+    if dir.x == -1 && dir.y == 0 return v2 { 0, 1 };
+    return v2 { 0, 0 };
+}
 
+rotate_ccw :: fn(dir: v2) -> v2 {
+    return rotate(rotate(rotate(dir)));
+}
+
+min :: fn (a: int, b: int) -> int {
+    if a < b return a;
+    return b;
+}
+
+INT_MAX :: 9_223_372_036_854_775_807;
+
+print_map :: fn (map: [][]Tile, at: v2) {
     for y := 0; y < height; y += 1 {
         for x := 0; x < width; x += 1 {
-            io.print("%c", match map[y][x] {
-                Tile.Empty: return '.';
-                Tile.Wall: return '#';
-                Tile.Start: return '!';
-                Tile.End: return '0';
-            });
+            if x == at.x && y == at.y {
+                io.print("X");
+            }
+            else {
+                io.print("%c", match map[y][x] {
+                    Tile.Empty: return '.';
+                    Tile.Wall: return '#';
+                    Tile.Start: return 'S';
+                    Tile.End: return 'E';
+                });
+            }
         }
         io.println("");
     }
+}
+
+sort :: fn (arr: *[]$T, cmp: fn(a: T, b: T) -> bool) {
+    arr := arr;
+    for i := 0; i < arr.count; i += 1 {
+        for j := i+1; j < arr.count; j += 1 {
+            if !cmp((*arr)[i], (*arr)[j]) {
+                tmp := (*arr)[i];
+                (*arr)[i] = (*arr)[j];
+                (*arr)[j] = tmp;
+            }
+        }
+    }
+}
+
+struct ANode
+{
+    pos: v2,
+    facing: v2,
+    g: int, // current cost
+    h: int, // estemated cost to end
+}
+
+get_cost :: fn(node: *ANode) -> int {
+    return node.g + node.h;
+}
+
+pop :: fn(arr: *[]$T) -> T {
+    arr := arr;
+    arr.count -= 1;
+    return (*arr)[arr.count];
+}
+
+make_node :: fn(pos: v2, g: int, facing: v2, end: v2) -> *ANode {
+    res_myb := mem.make_type(ANode, &alloc);
+    os.assert(res_myb != null, "Failed to allocate memory");
+    res := ?res_myb;
+    res.pos = pos;
+    res.facing = facing;
+    res.g = g;
+    res.h = math.abs(end.x - pos.x) + math.abs(end.y - pos.y);
+    return res;
+}
+
+v2s_match :: fn(a: v2, b: v2) -> bool {
+    return a.x == b.x && a.y == b.y;
+}
+
+a_star :: fn (map: [][]Tile, start: v2, end: v2) -> int {
+
+    start := make_node(start, 0, v2 { 1, 0 }, end);
+    open_list := arr.create(*ANode, &alloc);
+    closed_list := arr.create(*ANode, &alloc);
+
+    arr.add(&open_list, start);
+
+    for open_list.count != 0 {
+        node := pop(&open_list);
+        if v2s_match(node.pos, end) {
+            return node.g;
+        }
+        arr.add(&closed_list, node);
+        facing := node.facing;
+        cw := rotate(node.facing);
+        ccw := rotate_ccw(node.facing);
+        n1 := make_node(v2_add(node.pos, facing), node.g+1, facing, end);
+        n2 := make_node(v2_add(node.pos, cw), node.g+1001, cw, end);
+        n3 := make_node(v2_add(node.pos, ccw), node.g+1001, ccw, end);
+
+        neighbours := []*ANode { n1, n2, n3 };
+        for n in neighbours {
+            if map[n.pos.y][n.pos.x] == Tile.Wall
+                continue;
+
+            skip := false;
+            for closed in closed_list {
+                if v2s_match(n.pos, closed.pos) {
+                    if n.g > closed.g skip = true;
+                    break;
+                }
+            }
+            if skip continue;
+            for j := 0; j < open_list.count; j += 1 {
+                open := open_list[j];
+                if v2s_match(n.pos, open.pos) {
+                    skip = true;
+                    if n.g < open.g open_list[j] = n;
+                    break;
+                }
+            }
+            if skip continue;
+            arr.add(&open_list, n);
+            sort(&open_list, fn(a: *ANode, b: *ANode) -> bool {
+                return get_cost(a) > get_cost(b);
+            });
+        }
+
+    }
+
+    return INT_MAX;
+}
+
+main :: fn() -> i32 {
+	alloc = mem.create_scratch(1024 * 1024 * 1024);
+	defer mem.destroy_scratch(&alloc);
+
+    map, start, end := get_map(&alloc, &width, &height);
 
 
+    visited := arr.create(v2, &alloc);
+    res := a_star(map, start, end);
+    io.println("Result: %", res);
 
 	return 0;
 }
